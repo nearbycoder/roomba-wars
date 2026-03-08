@@ -140,6 +140,46 @@ describe('GameWorld', () => {
     )
   })
 
+  it('ranks standings by best score before active status', () => {
+    const world = new GameWorld()
+    world.restoreStandings([
+      {
+        normalizedName: 'sammy9999',
+        name: 'sammy9999',
+        color: '#4a7cff',
+        score: 454,
+        updatedAt: 1,
+      },
+      {
+        normalizedName: 'josh2',
+        name: 'Josh2',
+        color: '#ef4d4d',
+        score: 89,
+        updatedAt: 2,
+      },
+    ])
+
+    const rejoined = world.createPendingSession('Josh2', '#ef4d4d')
+    expect(rejoined.ok).toBe(true)
+    if (!rejoined.ok) {
+      throw new Error('rejoin failed')
+    }
+
+    expect(world.activateSession(rejoined.sessionId)).toMatchObject({ ok: true })
+    expect(world.getLeaderboard().slice(0, 2)).toEqual([
+      expect.objectContaining({
+        name: 'sammy9999',
+        score: 454,
+        active: false,
+      }),
+      expect.objectContaining({
+        name: 'Josh2',
+        score: 89,
+        active: true,
+      }),
+    ])
+  })
+
   it('spawns players on unique dirty tiles and includes visible dust bunnies', () => {
     const { world } = createWorld()
     const aliceId = joinAndActivate(world, 'Alice')

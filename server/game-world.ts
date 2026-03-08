@@ -557,11 +557,11 @@ export class GameWorld {
   getLeaderboard(): LeaderboardEntry[] {
     return [...this.standings.values()]
       .sort((left, right) => {
-        if (left.active !== right.active) {
-          return left.active ? -1 : 1
-        }
         if (right.score !== left.score) {
           return right.score - left.score
+        }
+        if (left.active !== right.active) {
+          return left.active ? -1 : 1
         }
         if (right.updatedAt !== left.updatedAt) {
           return right.updatedAt - left.updatedAt

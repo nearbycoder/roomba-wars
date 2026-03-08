@@ -17,8 +17,7 @@ function App() {
 
       <header className="hud hud-top">
         <section className="hud-card brand-card">
-          <p className="eyebrow">Roomba Wars</p>
-          <h1>Infinite Dirt Arena</h1>
+          <h1>Roomba Wars</h1>
           <p className="hud-copy">
             Vacuum more live dirt than the rest. Every cleaned tile locks out until it regrows 30 to 60 seconds later.
           </p>

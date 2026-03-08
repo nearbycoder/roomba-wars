@@ -99,6 +99,8 @@ interface GameWorldOptions {
   now?: () => number
   random?: () => number
   disableEnemies?: boolean
+  regrowMinMs?: number
+  regrowMaxMs?: number
 }
 
 export interface CreatePendingSuccess {
@@ -160,12 +162,16 @@ export class GameWorld {
   private readonly now: () => number
   private readonly random: () => number
   private readonly disableEnemies: boolean
+  private readonly regrowMinMs: number
+  private readonly regrowMaxMs: number
   private lastEnemyStepAt = 0
 
   constructor(options: GameWorldOptions = {}) {
     this.now = options.now ?? (() => Date.now())
     this.random = options.random ?? Math.random
     this.disableEnemies = options.disableEnemies ?? false
+    this.regrowMinMs = options.regrowMinMs ?? REGROW_MIN_MS
+    this.regrowMaxMs = options.regrowMaxMs ?? REGROW_MAX_MS
   }
 
   createPendingSession(rawName: string, rawColor = DEFAULT_ROOMBA_COLOR): CreatePendingResult {
@@ -1066,7 +1072,9 @@ export class GameWorld {
   }
 
   private regrowDelay(): number {
-    return REGROW_MIN_MS + Math.floor(this.random() * (REGROW_MAX_MS - REGROW_MIN_MS + 1))
+    const min = Math.min(this.regrowMinMs, this.regrowMaxMs)
+    const max = Math.max(this.regrowMinMs, this.regrowMaxMs)
+    return min + Math.floor(this.random() * (max - min + 1))
   }
 
   private reactivateTile(x: number, z: number): void {

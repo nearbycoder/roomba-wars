@@ -19,6 +19,7 @@ export default function BenchmarkApp() {
           cameraMode="free"
           spectatorView="benchmark"
           fillVoidTiles
+          actorStyle="benchmark"
           onFreeCameraFocusChange={setCameraFocus}
         />
       </div>

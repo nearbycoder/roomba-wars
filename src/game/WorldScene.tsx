@@ -19,6 +19,7 @@ interface WorldSceneProps {
   cameraMode?: 'follow' | 'spectator' | 'free'
   spectatorView?: 'default' | 'benchmark'
   fillVoidTiles?: boolean
+  actorStyle?: 'default' | 'benchmark'
   onFreeCameraFocusChange?:
     | ((view: { camera: { x: number; z: number }; focus: { x: number; z: number } }) => void)
     | undefined
@@ -33,6 +34,7 @@ export function WorldScene({
   cameraMode = 'follow',
   spectatorView = 'default',
   fillVoidTiles = false,
+  actorStyle = 'default',
   onFreeCameraFocusChange,
 }: WorldSceneProps) {
   return (
@@ -47,7 +49,7 @@ export function WorldScene({
       {cameraMode === 'free' ? <FreeRoamCamera onFocusChange={onFreeCameraFocusChange} /> : null}
       <Ground />
       <Tiles tiles={tiles} now={now} fillVoidTiles={fillVoidTiles} />
-      <Players players={players} selfSessionId={self?.sessionId ?? ''} />
+      <Players players={players} selfSessionId={self?.sessionId ?? ''} actorStyle={actorStyle} />
       <DustBunnies enemies={enemies} />
     </Canvas>
   )
@@ -420,9 +422,27 @@ function VoidTileInstances({
   )
 }
 
-function Players({ players, selfSessionId }: { players: VisiblePlayer[]; selfSessionId: string }) {
+function Players({
+  players,
+  selfSessionId,
+  actorStyle,
+}: {
+  players: VisiblePlayer[]
+  selfSessionId: string
+  actorStyle: 'default' | 'benchmark'
+}) {
   const selfPlayers: VisiblePlayer[] = []
   const crowdPlayers: VisiblePlayer[] = []
+
+  if (actorStyle === 'benchmark') {
+    return (
+      <group>
+        {players.map((player) => (
+          <RoombaActor key={player.sessionId} player={player} actorStyle={actorStyle} />
+        ))}
+      </group>
+    )
+  }
 
   for (const player of players) {
     if (player.sessionId === selfSessionId) {
@@ -435,14 +455,14 @@ function Players({ players, selfSessionId }: { players: VisiblePlayer[]; selfSes
   return (
     <group>
       {selfPlayers.map((player) => (
-        <RoombaActor key={player.sessionId} player={player} />
+        <RoombaActor key={player.sessionId} player={player} actorStyle={actorStyle} />
       ))}
-      {crowdPlayers.length > 0 ? <CrowdRoombas players={crowdPlayers} capacity={crowdPlayers.length} /> : null}
+      {crowdPlayers.length > 0 ? <CrowdRoombas players={crowdPlayers} capacity={crowdPlayers.length} actorStyle={actorStyle} /> : null}
     </group>
   )
 }
 
-function RoombaActor({ player }: { player: VisiblePlayer }) {
+function RoombaActor({ player, actorStyle }: { player: VisiblePlayer; actorStyle: 'default' | 'benchmark' }) {
   const initialYaw = headingToRotation(player.heading)
   const groupRef = useRef<THREE.Group>(null)
   const targetPosition = useRef(new THREE.Vector3(player.x, 0.18, player.z))
@@ -477,39 +497,40 @@ function RoombaActor({ player }: { player: VisiblePlayer }) {
 
   return (
     <group ref={groupRef}>
-      <RoombaModel color={player.color} />
+      <RoombaModel color={player.color} actorStyle={actorStyle} />
     </group>
   )
 }
 
-function RoombaModel({ color }: { color: string }) {
+function RoombaModel({ color, actorStyle }: { color: string; actorStyle: 'default' | 'benchmark' }) {
   const shellBase = new THREE.Color(color)
-  const shellOuter = tintColor(shellBase, '#06080d', 0.5)
-  const shellMid = tintColor(shellBase, '#10151d', 0.28)
-  const shellTop = tintColor(shellBase, '#ffffff', 0.12)
-  const trimColor = tintColor(shellBase, '#050608', 0.64)
-  const accentColor = tintColor(shellBase, '#ffffff', 0.36)
+  const benchmarkStyle = actorStyle === 'benchmark'
+  const shellOuter = benchmarkStyle ? tintColor(shellBase, '#ffffff', 0.08) : tintColor(shellBase, '#06080d', 0.5)
+  const shellMid = benchmarkStyle ? tintColor(shellBase, '#ffffff', 0.22) : tintColor(shellBase, '#10151d', 0.28)
+  const shellTop = benchmarkStyle ? tintColor(shellBase, '#ffffff', 0.55) : tintColor(shellBase, '#ffffff', 0.12)
+  const trimColor = benchmarkStyle ? tintColor(shellBase, '#1a1f26', 0.25) : tintColor(shellBase, '#050608', 0.64)
+  const accentColor = benchmarkStyle ? tintColor(shellBase, '#ffffff', 0.72) : tintColor(shellBase, '#ffffff', 0.36)
 
   return (
     <group>
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[0.44, 0.47, 0.14, 48]} />
-        <meshStandardMaterial color={shellOuter} metalness={0.45} roughness={0.28} />
+        <meshStandardMaterial color={shellOuter} metalness={benchmarkStyle ? 0.12 : 0.45} roughness={benchmarkStyle ? 0.52 : 0.28} />
       </mesh>
 
       <mesh position={[0, 0.05, 0]} castShadow>
         <cylinderGeometry args={[0.4, 0.42, 0.04, 48]} />
-        <meshStandardMaterial color={shellMid} metalness={0.55} roughness={0.22} />
+        <meshStandardMaterial color={shellMid} metalness={benchmarkStyle ? 0.1 : 0.55} roughness={benchmarkStyle ? 0.46 : 0.22} />
       </mesh>
 
       <mesh position={[0, 0.08, 0]} castShadow>
         <cylinderGeometry args={[0.31, 0.33, 0.03, 40]} />
-        <meshStandardMaterial color={shellTop} metalness={0.35} roughness={0.24} />
+        <meshStandardMaterial color={shellTop} metalness={benchmarkStyle ? 0.08 : 0.35} roughness={benchmarkStyle ? 0.32 : 0.24} />
       </mesh>
 
       <mesh position={[0, 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.235, 0.022, 14, 48]} />
-        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={0.16} />
+        <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={benchmarkStyle ? 0.24 : 0.16} />
       </mesh>
 
       <mesh position={[0, 0.112, 0]} castShadow>
@@ -572,12 +593,21 @@ interface CrowdActorState {
   buttonColor: THREE.Color
 }
 
-function CrowdRoombas({ players, capacity }: { players: VisiblePlayer[]; capacity: number }) {
+function CrowdRoombas({
+  players,
+  capacity,
+  actorStyle,
+}: {
+  players: VisiblePlayer[]
+  capacity: number
+  actorStyle: 'default' | 'benchmark'
+}) {
   const statesRef = useRef(new Map<string, CrowdActorState>())
   const bodyRef = useRef<THREE.InstancedMesh>(null)
   const topRef = useRef<THREE.InstancedMesh>(null)
   const buttonRef = useRef<THREE.InstancedMesh>(null)
   const sensorRef = useRef<THREE.InstancedMesh>(null)
+  const benchmarkStyle = actorStyle === 'benchmark'
 
   useEffect(() => {
     const nextIds = new Set(players.map((player) => player.sessionId))
@@ -592,9 +622,9 @@ function CrowdRoombas({ players, capacity }: { players: VisiblePlayer[]; capacit
       if (existing) {
         existing.targetPosition.set(player.x, 0.18, player.z)
         existing.targetYaw = headingToRotation(player.heading)
-        existing.bodyColor.copy(tintColor(player.color, '#070a0f', 0.45))
-        existing.topColor.copy(tintColor(player.color, '#ffffff', 0.14))
-        existing.buttonColor.copy(tintColor(player.color, '#ffffff', 0.3))
+        existing.bodyColor.copy(benchmarkStyle ? tintColor(player.color, '#ffffff', 0.16) : tintColor(player.color, '#06080d', 0.42))
+        existing.topColor.copy(benchmarkStyle ? tintColor(player.color, '#ffffff', 0.56) : tintColor(player.color, '#ffffff', 0.18))
+        existing.buttonColor.copy(benchmarkStyle ? tintColor(player.color, '#ffffff', 0.82) : tintColor(player.color, '#ffffff', 0.36))
         continue
       }
 
@@ -604,12 +634,12 @@ function CrowdRoombas({ players, capacity }: { players: VisiblePlayer[]; capacit
         targetPosition: new THREE.Vector3(player.x, 0.18, player.z),
         yaw,
         targetYaw: yaw,
-        bodyColor: tintColor(player.color, '#070a0f', 0.45),
-        topColor: tintColor(player.color, '#ffffff', 0.14),
-        buttonColor: tintColor(player.color, '#ffffff', 0.3),
+        bodyColor: benchmarkStyle ? tintColor(player.color, '#ffffff', 0.16) : tintColor(player.color, '#06080d', 0.42),
+        topColor: benchmarkStyle ? tintColor(player.color, '#ffffff', 0.56) : tintColor(player.color, '#ffffff', 0.18),
+        buttonColor: benchmarkStyle ? tintColor(player.color, '#ffffff', 0.82) : tintColor(player.color, '#ffffff', 0.36),
       })
     }
-  }, [players])
+  }, [benchmarkStyle, players])
 
   useFrame((_, delta) => {
     const bodyMesh = bodyRef.current
@@ -664,15 +694,15 @@ function CrowdRoombas({ players, capacity }: { players: VisiblePlayer[]; capacit
     <group>
       <instancedMesh key={`crowd-body-${capacity}`} ref={bodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <cylinderGeometry args={[1, 1, 1, 18]} />
-        <meshStandardMaterial metalness={0.38} roughness={0.3} vertexColors />
+        <meshStandardMaterial metalness={benchmarkStyle ? 0.08 : 0.3} roughness={benchmarkStyle ? 0.46 : 0.4} vertexColors />
       </instancedMesh>
       <instancedMesh key={`crowd-top-${capacity}`} ref={topRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <cylinderGeometry args={[1, 1, 1, 16]} />
-        <meshStandardMaterial metalness={0.22} roughness={0.28} vertexColors />
+        <meshStandardMaterial metalness={benchmarkStyle ? 0.02 : 0.18} roughness={benchmarkStyle ? 0.24 : 0.3} vertexColors />
       </instancedMesh>
       <instancedMesh key={`crowd-button-${capacity}`} ref={buttonRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <cylinderGeometry args={[1, 1, 1, 14]} />
-        <meshStandardMaterial emissive="#dbe6da" emissiveIntensity={0.08} vertexColors />
+        <meshStandardMaterial emissive="#ffffff" emissiveIntensity={benchmarkStyle ? 0.28 : 0.12} vertexColors />
       </instancedMesh>
       <instancedMesh key={`crowd-sensor-${capacity}`} ref={sensorRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <cylinderGeometry args={[1, 1, 1, 12]} />

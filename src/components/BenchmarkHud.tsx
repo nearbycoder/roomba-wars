@@ -76,7 +76,7 @@ export function BenchmarkHud({ config, snapshot, speed, stats, onSpeedChange }: 
           <div className="arena-board-copy">
             <span className="label">Scenario</span>
             <p className="arena-board-note">
-              Drag to look. `WASD` move, `Ctrl/Q` lower, `Space/E` rise, mouse wheel dolly. The benchmark streams the field from the viewport center using the same minimum tile radius as live play, while the speed slider scales the local sim on top of dirt, regrow, collision, and optional dust bunny rules.
+              Drag to look. `WASD` move, `Ctrl/Q` lower, `Space/E` rise, mouse wheel dolly. Add `&square=1` to spread the crowd through one constrained square with 10-cell spacing and varied bot colors. The speed slider scales the local sim on top of dirt, regrow, collision, and optional dust bunny rules.
             </p>
           </div>
           <span className="active-chip">

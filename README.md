@@ -58,19 +58,23 @@ Benchmark mode:
 
 - runs the real `GameWorld` simulation locally
 - uses the same dirt, collision, regrow, and enemy rules as the live game
+- shortens dirt regrow to `5s` so benchmark traffic keeps circulating
 - streams the infinite field around the free camera view
-- includes a live simulation speed slider
+- includes a live simulation speed slider that persists in browser storage
+- can constrain dense test crowds into a spaced square layout with varied bot colors
+- renders benchmark roombas with one consistent high-visibility model so dense crowds are easier to inspect
 
 Optional params:
 
 - `bots`: number of benchmark roombas, clamped to `1-400`
 - `field`: extra tile padding around the camera span, clamped to `12-40`
-- `speed`: initial simulation speed, clamped to `0-4`
+- `speed`: initial simulation speed, clamped to `0-4`; the slider value is then remembered locally for later benchmark runs
+- `square=1`: constrain benchmark roombas to one centered square while spacing their starting slots 10 cells apart and assigning varied colors
 - `bunnies=1`: enable dust bunny simulation
 
 Example:
 
-`http://localhost:5173/?benchmark=1&bots=200&field=24&speed=1.5&bunnies=1`
+`http://localhost:5173/?benchmark=1&bots=200&field=24&speed=1.5&square=1&bunnies=1`
 
 ## Local Development
 

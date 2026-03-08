@@ -2,6 +2,8 @@ import type { GameState } from '../game/useRoombaWars'
 
 interface ArenaCardProps {
   state: GameState
+  className?: string
+  onRequestClose?: (() => void) | undefined
 }
 
 interface JoinCardProps {
@@ -15,17 +17,24 @@ interface LegendBubbleProps {
   onToggle: () => void
 }
 
-export function ArenaCard({ state }: ArenaCardProps) {
+export function ArenaCard({ state, className = '', onRequestClose }: ArenaCardProps) {
   const activeCount = state.leaderboard.filter((entry) => entry.active).length
 
   return (
-    <section className="hud-card arena-card">
+    <section className={['hud-card', 'arena-card', className].filter(Boolean).join(' ')}>
       <div className="arena-card-header">
         <div className="arena-card-copy">
           <span className="label">Arena status</span>
           <h2 className="arena-card-title">Live standings</h2>
         </div>
-        <span className={`status-pill status-${state.status}`}>{state.statusLabel}</span>
+        <div className="arena-card-actions">
+          <span className={`status-pill status-${state.status}`}>{state.statusLabel}</span>
+          {onRequestClose ? (
+            <button className="mobile-hud-close" type="button" onClick={onRequestClose} aria-label="Close standings">
+              Close
+            </button>
+          ) : null}
+        </div>
       </div>
       <div className="stat-grid">
         <div className="stat-card">
@@ -76,6 +85,28 @@ export function ArenaCard({ state }: ArenaCardProps) {
         ))}
       </ol>
     </section>
+  )
+}
+
+interface MobileHudToggleProps {
+  state: GameState
+  onToggle: () => void
+}
+
+export function MobileHudToggle({ state, onToggle }: MobileHudToggleProps) {
+  const activeCount = state.leaderboard.filter((entry) => entry.active).length
+
+  return (
+    <button className="mobile-hud-toggle hud-card" type="button" onClick={onToggle} aria-expanded={false}>
+      <span className="mobile-hud-toggle-copy">
+        <span className="label">Arena</span>
+        <strong>{state.statusLabel}</strong>
+      </span>
+      <span className="mobile-hud-toggle-stats">
+        <span>{state.self?.score ?? 0} pts</span>
+        <span>{activeCount} active</span>
+      </span>
+    </button>
   )
 }
 

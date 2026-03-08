@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArenaCard, JoinCard, LegendBubble } from './components/GameHud'
+import { ArenaCard, JoinCard, LegendBubble, MobileHudToggle } from './components/GameHud'
 import { WorldScene } from './game/WorldScene'
 import { useRoombaWars } from './game/useRoombaWars'
 import { useFpsCounter } from './hooks/useFpsCounter'
@@ -8,6 +8,7 @@ function App() {
   const { state, joinGame, leaveGame } = useRoombaWars()
   const fps = useFpsCounter()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const [isMobileHudOpen, setIsMobileHudOpen] = useState(false)
 
   return (
     <main className="game-shell">
@@ -23,7 +24,12 @@ function App() {
           </p>
         </section>
 
-        <ArenaCard state={state} />
+        <MobileHudToggle state={state} onToggle={() => setIsMobileHudOpen((current) => !current)} />
+        <ArenaCard
+          state={state}
+          className={state.self && isMobileHudOpen ? 'is-mobile-open' : ''}
+          onRequestClose={() => setIsMobileHudOpen(false)}
+        />
       </header>
 
       <div className="hud hud-fps">
